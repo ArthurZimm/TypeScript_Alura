@@ -1,16 +1,16 @@
 import { TipoTransacao } from "./TipoTransacao.js";
 let saldo = JSON.parse(localStorage.getItem("saldo")) || 0;
 const transacoes = JSON.parse(localStorage.getItem("transacoes"), (key, value) => {
-    if (key === "data") {
+    if (key == "data") {
         return new Date(value);
     }
     return value;
 }) || [];
 function debitar(valor) {
     if (valor <= 0) {
-        throw new Error("O valor a ser debitado deve ser maior que zero!");
+        throw new Error("Valor a ser debitado deve ser maior que 0!");
     }
-    if (valor > saldo) {
+    if (saldo < valor) {
         throw new Error("Saldo insuficiente!");
     }
     saldo -= valor;
@@ -18,7 +18,7 @@ function debitar(valor) {
 }
 function depositar(valor) {
     if (valor <= 0) {
-        throw new Error("O valor a ser depositado deve ser maior que zero!");
+        throw new Error("Valor a ser depositado deve ser maior que 0!");
     }
     saldo += valor;
     localStorage.setItem("saldo", saldo.toString());
@@ -33,11 +33,11 @@ const Conta = {
     getGruposTransacoes() {
         const gruposTransacoes = [];
         const listaTransacoes = structuredClone(transacoes);
-        const transacoesOrdenadas = listaTransacoes.sort((t1, t2) => t2.data.getTime() - t1.data.getTime());
+        const transacoesOrdenadas = listaTransacoes.sort((a, b) => b.data.getTime() - a.data.getTime());
         let labelAtualGrupoTransacao = "";
         for (let transacao of transacoesOrdenadas) {
             let labelGrupoTransacao = transacao.data.toLocaleDateString("pt-br", { month: "long", year: "numeric" });
-            if (labelAtualGrupoTransacao !== labelGrupoTransacao) {
+            if (labelAtualGrupoTransacao != labelGrupoTransacao) {
                 labelAtualGrupoTransacao = labelGrupoTransacao;
                 gruposTransacoes.push({
                     label: labelGrupoTransacao,
@@ -52,7 +52,7 @@ const Conta = {
         if (novaTransacao.tipoTransacao == TipoTransacao.DEPOSITO) {
             depositar(novaTransacao.valor);
         }
-        else if (novaTransacao.tipoTransacao == TipoTransacao.TRANSFERENCIA || novaTransacao.tipoTransacao == TipoTransacao.PAGAMENTO_BOLETO) {
+        else if (novaTransacao.tipoTransacao == TipoTransacao.TRANSFERENCIA || novaTransacao.tipoTransacao == TipoTransacao.BOLETO) {
             debitar(novaTransacao.valor);
             novaTransacao.valor *= -1;
         }
